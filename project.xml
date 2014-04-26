@@ -5,6 +5,7 @@
     <haxelib name="ash" />
     <haxelib name="HaxePunk" />
     <haxelib name="flaxen" />
+    <haxelib name="nape" />
 
     <assets path="assets/art" rename="art" type="image" include="*.png" />
     <assets path="assets/audio" rename="sound" type="sound" include="*.wav" />
