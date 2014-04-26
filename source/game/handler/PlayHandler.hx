@@ -6,6 +6,8 @@ import flaxen.core.FlaxenHandler;
 import flaxen.core.Log;
 import flaxen.service.InputService;
 import flaxen.component.*;
+import flaxen.common.Easing;
+import flaxen.common.LoopType;
 
 class PlayHandler extends FlaxenHandler
 {
@@ -29,28 +31,66 @@ class PlayHandler extends FlaxenHandler
 			.add(new Position(0, 538))
 			.add(new Image("art/floor.png"));
 
-		var parent = new Position(100, 100);
-		var child = new Position(10, 10);
-		var absolute = Position.zero();
-		var relative = new RelativePosition(absolute, parent, child);
-		trace(" - parent:" + parent + " child:" + child + " abs:" + absolute);
-		child.set(5, 5);
-		trace(" - parent:" + parent + " child:" + child + " abs:" + absolute);
-		parent.set(50, 50);
-		trace(" - parent:" + parent + " child:" + child + " abs:" + absolute);
-		child.x = 20;
-		child.y = 40;
-		trace(" - parent:" + parent + " child:" + child + " abs:" + absolute);
-
 		f.newComponentSet("climberSet")
 			.add(new Layer(20));
 
-		var parentPos = new Position(308, 475);
+		var bodyPos = new Position(308, 475);
 		f.newSetSingleton("climberSet", "body")
 			.add(new Image("art/climber/body.png"))
 			.add(Offset.center())
 			.add(Origin.center())
-			.add(parentPos);
+			.add(bodyPos);
+
+		var rot = new Rotation(-20);
+		var tween = new Tween(rot, { angle:20 }, 0.5, Easing.easeInOutQuad);
+		tween.loop = LoopType.Both;
+		var headPos = Position.zero();
+		f.newSetSingleton("climberSet", "head")
+			.add(new Image("art/climber/head.png"))
+			.add(Offset.center())
+			.add(new Origin(50, 64))
+			.add(rot).add(headPos).add(tween)
+			.add(new RelativePosition(headPos, bodyPos, new Position(0, -80)));
+
+		var shoulderJoint = Position.zero();
+		var bicepRot = new Rotation(0);
+		tween = new Tween(bicepRot, { angle:360 }, 1.0);
+		tween.loop = LoopType.Forward;
+		f.newSetSingleton("climberSet", "rightBicep")
+			.add(new Image("art/climber/bicep.png"))
+			.add(new Offset(-10, -10))
+			.add(new Origin(10, 10))
+			.add(bicepRot)
+			.add(shoulderJoint)
+			.add(tween)
+			.add(new RelativePosition(shoulderJoint, bodyPos, new Position(20, -28)));
+		var elbowJoint = Position.zero();
+		f.newEntity()
+			.add(new RelativePosition(elbowJoint, shoulderJoint, new Position(50, 0)));
+
+		var forearmRot = new Rotation(0);
+		tween = new Tween(forearmRot, { angle:360 }, 1.0);
+		tween.loop = LoopType.Forward;
+		var forearmPos = Position.zero();
+		f.newSetSingleton("climberSet", "rightForearm")
+			.add(new Image("art/climber/forearm.png"))
+			.add(new Offset(-7, -7))
+			.add(new Origin(7, 7))
+			.add(forearmRot)
+			.add(forearmPos)
+			.add(tween)
+			.add(new Layer(25)) // put forearm behind bicep
+			.add(new RelativePosition(forearmPos, elbowJoint, new Position(44, 10)));
+
+		var handPos = Position.zero();
+		f.newSetSingleton("climberSet", "rightHand")
+			.add(new Image("art/climber/hand.png"))
+			.add(new Offset(-3, -8))
+			.add(new Origin(3, 8))
+			.add(forearmRot)
+			.add(handPos)
+			.add(new RelativePosition(handPos, forearmPos, new Position(34, 0)));
+
 	}
 
 	override public function update(_)
