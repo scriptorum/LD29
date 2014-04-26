@@ -28,22 +28,26 @@ class PlayHandler extends FlaxenHandler
 			.add(new Layer(95))
 			.add(new Position(0, 538))
 			.add(new Image("art/floor.png"));
+
+		var parent = new NestablePosition(100, 100);
+		trace(" - parent:" + parent);
+		var child = new NestablePosition(10, 10, parent);
+		trace(" - parent:" + parent + " child:" + child); // 110,110
+		child.set(5, 5);
+		trace(" - parent:" + parent + " child:" + child); // 105,105
+		parent.set(50, 50);
+		trace(" - parent:" + parent + " child:" + child); // 55, 55
+		child.x = 20;
+		child.y = 40;
+		trace(" - parent:" + parent + " child:" + child); // 70, 90
+		trace("Child:" + child.x + "," + child.y);
+
 	}
 
 	override public function update(_)
 	{
 		var key = InputService.lastKey();
-
-		#if debug
-		if(key == Key.D)
-		{
-			trace("Dumping log(s)");
-			flaxen.util.LogUtil.dumpLog(f, Main.CWD + "entities.txt");
-			for(setName in f.getComponentSetKeys())
-				trace(setName + ":{" + f.getComponentSet(setName) + "}");
-		}
-		#end
-
+		//...
 		InputService.clearLastKey();
 	}
 }
