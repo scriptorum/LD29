@@ -5,6 +5,7 @@ import flaxen.core.Flaxen;
 import flaxen.core.FlaxenHandler;
 import flaxen.core.Log;
 import flaxen.service.InputService;
+import flaxen.component.*;
 
 class PlayHandler extends FlaxenHandler
 {
@@ -18,6 +19,15 @@ class PlayHandler extends FlaxenHandler
 
 	override public function start(_)
 	{
+		f.newSingleton("wall")
+			.add(new Layer(100))
+			.add(Position.zero())
+			.add(new Image("art/wall.png"))
+			.add(Repeating.instance);
+		f.newSingleton("floor")
+			.add(new Layer(95))
+			.add(new Position(0, 538))
+			.add(new Image("art/floor.png"));
 	}
 
 	override public function update(_)
