@@ -70,14 +70,14 @@ class PlayHandler extends FlaxenHandler
 		var lay2 = new Layer(21);
 		var lay3 = new Layer(22);
 		var lay4 = new Layer(23);
-		var body = addNapeEntity("body", 63, 90, 1, -96, .516, .627, 0, lay1, false, null);
-		var head = addNapeEntity("head", 101, 84, 1, -149, .5, .94, 0, lay2, false, body);
-		var bicep = addNapeEntity("bicep", 60, 20, 22, -133, .064, .55, 0, lay2, true, body);
-		var forearm = addNapeEntity("forearm", 44, 13, 65, -134, .1, .48, 0, lay3, true, bicep);
-		var hand = addNapeEntity("hand", 14, 16, 96, -135, .042, .469, 0, lay4, true, forearm);
-		var thigh = addNapeEntity("thigh", 30, 62, 13, -78, .484, .238, 67, lay2, true, body);
-		var foreleg = addNapeEntity("foreleg", 18, 47, 14, -43, .579, .104, 83, lay3, true, thigh);
-		var foot = addNapeEntity("foot", 15, 9, 15, -4, .200, .525, 0, lay4, true, foreleg);
+		var body = addNapeEntity("body", 63, 90, 1, -96, .516, .627, lay1, false, null);
+		var head = addNapeEntity("head", 101, 84, 1, -149, .5, .94, lay2, false, body);
+		var bicep = addNapeEntity("bicep", 60, 20, 22, -133, .064, .55, lay2, true, body);
+		var forearm = addNapeEntity("forearm", 44, 13, 65, -134, .1, .48, lay3, true, bicep);
+		var hand = addNapeEntity("hand", 14, 16, 96, -135, .042, .469, lay4, true, forearm);
+		var thigh = addNapeEntity("thigh", 30, 62, 13, -78, .484, .238, lay2, true, body);
+		var foreleg = addNapeEntity("foreleg", 18, 47, 14, -43, .579, .104, lay3, true, thigh);
+		var foot = addNapeEntity("foot", 15, 9, 15, -4, .200, .525, lay4, true, foreleg);
 
 		#if nape
         napeDebug = new #if flash BitmapDebug #else ShapeDebug #end (
@@ -91,33 +91,36 @@ class PlayHandler extends FlaxenHandler
 	// TODO implement mirror, not that name needs to explicity for the entity name
 	// (e.g, handLeft) vs the filename (e.g. hand)
 	private function addNapeEntity(name:String, width:Float, height:Float, 
-		posX:Float, posY:Float, pivotX:Float, pivotY:Float, angle:Float, layer:Layer,
+		posX:Float, posY:Float, pivotX:Float, pivotY:Float, layer:Layer,
 		mirror:Bool, anchor:Body): Body
 	{
+		var shrinkage = 0.7;
 		pivotX -= 0.5;
 		pivotY -= 0.5;
-		var pos = new Position(300 + posX - pivotX * width, 560 + posY - pivotY * height);
-		var body = new Body(BodyType.STATIC);//anchor == null ? BodyType.STATIC : BodyType.DYNAMIC);
-		body.shapes.add(new Polygon(Polygon.box(width, height)));
-		if(anchor != null)
-			body.rotation = Math.PI / 180 * angle;
-		trace("Body:" + name + " Radians:" + body.rotation + " Degrees:" + angle);
+		var pos = new Position(300 + posX - pivotX * width, 300 + posY - pivotY * height);
+		var body = new Body(anchor == null ? BodyType.STATIC : BodyType.DYNAMIC);
+		var shape = new Polygon(Polygon.box(width * shrinkage, height * shrinkage));
+		shape.sensorEnabled = true;
+		body.shapes.add(shape);
 		body.position.setxy(pos.x, pos.y);
 		body.space = nape;
 
-		// if(anchor != null)
-		// {
-		// 	var worldAnchorPoint = new Vec2(pivotX * width + pos.x, pivotY * height + pos.y);
-		// 	var bodyPivot = body.worldPointToLocal(worldAnchorPoint);
-		// 	var anchorPivot = anchor.worldPointToLocal(worldAnchorPoint);
-		// 	var joint = new WeldJoint(body, anchor, bodyPivot, anchorPivot);			
-		// 	joint.space = nape;
-		// }
+		if(anchor != null)
+		{
+			var worldAnchorPoint = new Vec2(pos.x + pivotX * width, pos.y + pivotY * height);
+			var bodyPivot = body.worldPointToLocal(worldAnchorPoint);
+			var anchorPivot = anchor.worldPointToLocal(worldAnchorPoint);
+			trace("Connecting joint " + name + " at " + worldAnchorPoint + " bodyLocal:" + bodyPivot 
+				+ " anchorLocal:" + anchorPivot);
+			var joint = new PivotJoint(body, anchor, bodyPivot, anchorPivot);			
+			joint.debugDraw = true;
+			// joint.stiff = false;
+			joint.space = nape;
+		}
 
 		var e = f.newSetSingleton("climberSet", name)
 			.add(new Image("art/climber/" + name + ".png"))
 			.add(pos).add(body).add(layer);
-
 
 		return body;
 	}
