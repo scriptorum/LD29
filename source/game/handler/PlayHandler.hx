@@ -9,6 +9,8 @@ import flaxen.component.*;
 import flaxen.common.Easing;
 import flaxen.common.LoopType;
  
+import nape.constraint.PivotJoint;
+import nape.constraint.WeldJoint;
 import nape.geom.Vec2;
 import nape.phys.Body;
 import nape.phys.BodyType;
@@ -59,93 +61,64 @@ class PlayHandler extends FlaxenHandler
 			.add(new Image("art/floor.png"));
 
 		f.newComponentSet("climberSet")
-			.add(new Layer(20))
 			.add(new Rotation(0))
 			.add(Offset.center())
 			.add(Origin.center());
 
-		// Nape Body
-		var bodyPos = new Position(308, 0);
-		var body = new Body(BodyType.DYNAMIC);
-		body.shapes.add(new Polygon(Polygon.box(63, 90)));
-		body.position.setxy(bodyPos.x, bodyPos.y);
-		body.angularVel = -1;
-		body.space = nape;
-		f.newSetSingleton("climberSet", "body")
-			.add(new Image("art/climber/body.png"))
-			.add(bodyPos)
-			.add(body); 
-
-		// Nape Head
-		// var bodyPos = new Position(308, 475);
-		// var body = new Body(BodyType.DYNAMIC);
-		// body.shapes.add(new Circle(60));
-		// body.position.setxy(bodyPos.x, bodyPos.y);
-		// body.space = nape;
-		// f.newSetSingleton("climberSet", "body")
-		// 	.add(new Image("art/climber/body.png"))
-		// 	.add(bodyPos)
-		// 	.add(body); // Nape entity
-
+		// dim / pos / pivot (times dim) / mirror / anchor
+		var lay1 = new Layer(20);
+		var lay2 = new Layer(21);
+		var lay3 = new Layer(22);
+		var lay4 = new Layer(23);
+		var body = addNapeEntity("body", 63, 90, 1, -108, .516, .627, 0, lay1, false, null);
+		var head = addNapeEntity("head", 101, 84, 2, -153, .5, .94, 0, lay2, false, body);
+		var bicep = addNapeEntity("bicep", 60, 20, 22, -137, .064, .55, 0, lay2, true, body);
+		var forearm = addNapeEntity("forearm", 44, 13, 65, -138, .1, .48, 0, lay3, true, bicep);
+		var hand = addNapeEntity("hand", 14, 16, 96, -139, .042, .469, 0, lay4, true, forearm);
+		var thigh = addNapeEntity("thigh", 62, 30, 13, -77, .168, .58, 293, lay2, true, body);
+		var foreleg = addNapeEntity("foreleg", 47, 18, 32, -38, .153, .525, 277, lay3, true, thigh);
+		var foot = addNapeEntity("foot", 15, 9, 38, -4, .2, .524, 0, lay4, true, foreleg);
 
 		#if nape
         napeDebug = new #if flash BitmapDebug #else ShapeDebug #end (
         	com.haxepunk.HXP.width, com.haxepunk.HXP.height, com.haxepunk.HXP.stage.color);
         napeDebug.display.scrollRect = null;
+		napeDebug.drawConstraints = true;
         com.haxepunk.HXP.stage.addChild(napeDebug.display);
         #end
+	}
 
-/*
-		var rot = new Rotation(-20);
-		var tween = new Tween(rot, { angle:20 }, 0.5, Easing.easeInOutQuad);
-		tween.loop = LoopType.Both;
-		var headPos = Position.zero();
-		f.newSetSingleton("climberSet", "head")
-			.add(new Image("art/climber/head.png"))
-			.add(Offset.center())
-			.add(new Origin(50, 64))
-			.add(rot).add(headPos).add(tween)
-			.add(new RelativePosition(headPos, bodyPos, new Position(0, -80)));
+	// TODO implement mirror, not that name needs to explicity for the entity name
+	// (e.g, handLeft) vs the filename (e.g. hand)
+	private function addNapeEntity(name:String, width:Float, height:Float, 
+		posX:Float, posY:Float, pivotX:Float, pivotY:Float, angle:Float, layer:Layer,
+		mirror:Bool, anchor:Body): Body
+	{
+		pivotX -= 0.5;
+		pivotY -= 0.5;
+		var pos = new Position(300 + posX - pivotX * width, 560 + posY - pivotY * height);
+		var body = new Body(BodyType.STATIC);//anchor == null ? BodyType.STATIC : BodyType.DYNAMIC);
+		body.shapes.add(new Polygon(Polygon.box(width, height)));
+		// if(anchor != null)
+		// 	body.rotation = angle * Math.PI / 180;
+		body.position.setxy(pos.x, pos.y);
+		body.space = nape;
 
-		var shoulderJoint = Position.zero();
-		var bicepRot = new Rotation(0);
-		tween = new Tween(bicepRot, { angle:360 }, 1.0);
-		tween.loop = LoopType.Forward;
-		f.newSetSingleton("climberSet", "rightBicep")
-			.add(new Image("art/climber/bicep.png"))
-			.add(new Offset(-10, -10))
-			.add(new Origin(10, 10))
-			.add(bicepRot)
-			.add(shoulderJoint)
-			.add(tween)
-			.add(new RelativePosition(shoulderJoint, bodyPos, new Position(20, -28)));
-		var elbowJoint = Position.zero();
-		f.newEntity()
-			.add(new RelativePosition(elbowJoint, shoulderJoint, new Position(50, 0)));
+		// if(anchor != null)
+		// {
+		// 	var worldAnchorPoint = new Vec2(pivotX * width + pos.x, pivotY * height + pos.y);
+		// 	var bodyPivot = body.worldPointToLocal(worldAnchorPoint);
+		// 	var anchorPivot = anchor.worldPointToLocal(worldAnchorPoint);
+		// 	var joint = new WeldJoint(body, anchor, bodyPivot, anchorPivot);			
+		// 	joint.space = nape;
+		// }
 
-		var forearmRot = new Rotation(0);
-		tween = new Tween(forearmRot, { angle:360 }, 1.0);
-		tween.loop = LoopType.Forward;
-		var forearmPos = Position.zero();
-		f.newSetSingleton("climberSet", "rightForearm")
-			.add(new Image("art/climber/forearm.png"))
-			.add(new Offset(-7, -7))
-			.add(new Origin(7, 7))
-			.add(forearmRot)
-			.add(forearmPos)
-			.add(tween)
-			.add(new Layer(25)) // put forearm behind bicep
-			.add(new RelativePosition(forearmPos, elbowJoint, new Position(44, 10)));
+		var e = f.newSetSingleton("climberSet", name)
+			.add(new Image("art/climber/" + name + ".png"))
+			.add(pos).add(body).add(layer);
 
-		var handPos = Position.zero();
-		f.newSetSingleton("climberSet", "rightHand")
-			.add(new Image("art/climber/hand.png"))
-			.add(new Offset(-3, -8))
-			.add(new Origin(3, 8))
-			.add(forearmRot)
-			.add(handPos)
-			.add(new RelativePosition(handPos, forearmPos, new Position(34, 0)));
-*/
+
+		return body;
 	}
 
 	override public function update(_)
@@ -158,6 +131,8 @@ class PlayHandler extends FlaxenHandler
 			napeDebug.flush();
 		#end
 
+		// Update objects with a nape representation
+		// TODO move to a system
 		for(node in f.ash.getNodeList(NapeBodyNode))
 		{
 			node.position.x = node.body.position.x;
