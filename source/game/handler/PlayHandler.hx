@@ -70,14 +70,14 @@ class PlayHandler extends FlaxenHandler
 		var lay2 = new Layer(21);
 		var lay3 = new Layer(22);
 		var lay4 = new Layer(23);
-		var body = addNapeEntity("body", 63, 90, 1, -108, .516, .627, 0, lay1, false, null);
-		var head = addNapeEntity("head", 101, 84, 2, -153, .5, .94, 0, lay2, false, body);
-		var bicep = addNapeEntity("bicep", 60, 20, 22, -137, .064, .55, 0, lay2, true, body);
-		var forearm = addNapeEntity("forearm", 44, 13, 65, -138, .1, .48, 0, lay3, true, bicep);
-		var hand = addNapeEntity("hand", 14, 16, 96, -139, .042, .469, 0, lay4, true, forearm);
-		var thigh = addNapeEntity("thigh", 62, 30, 13, -77, .168, .58, 293, lay2, true, body);
-		var foreleg = addNapeEntity("foreleg", 47, 18, 32, -38, .153, .525, 277, lay3, true, thigh);
-		var foot = addNapeEntity("foot", 15, 9, 38, -4, .2, .524, 0, lay4, true, foreleg);
+		var body = addNapeEntity("body", 63, 90, 1, -96, .516, .627, 0, lay1, false, null);
+		var head = addNapeEntity("head", 101, 84, 1, -149, .5, .94, 0, lay2, false, body);
+		var bicep = addNapeEntity("bicep", 60, 20, 22, -133, .064, .55, 0, lay2, true, body);
+		var forearm = addNapeEntity("forearm", 44, 13, 65, -134, .1, .48, 0, lay3, true, bicep);
+		var hand = addNapeEntity("hand", 14, 16, 96, -135, .042, .469, 0, lay4, true, forearm);
+		var thigh = addNapeEntity("thigh", 30, 62, 13, -78, .484, .238, 67, lay2, true, body);
+		var foreleg = addNapeEntity("foreleg", 18, 47, 14, -43, .579, .104, 83, lay3, true, thigh);
+		var foot = addNapeEntity("foot", 15, 9, 15, -4, .200, .525, 0, lay4, true, foreleg);
 
 		#if nape
         napeDebug = new #if flash BitmapDebug #else ShapeDebug #end (
@@ -99,8 +99,9 @@ class PlayHandler extends FlaxenHandler
 		var pos = new Position(300 + posX - pivotX * width, 560 + posY - pivotY * height);
 		var body = new Body(BodyType.STATIC);//anchor == null ? BodyType.STATIC : BodyType.DYNAMIC);
 		body.shapes.add(new Polygon(Polygon.box(width, height)));
-		// if(anchor != null)
-		// 	body.rotation = angle * Math.PI / 180;
+		if(anchor != null)
+			body.rotation = Math.PI / 180 * angle;
+		trace("Body:" + name + " Radians:" + body.rotation + " Degrees:" + angle);
 		body.position.setxy(pos.x, pos.y);
 		body.space = nape;
 
